@@ -1,32 +1,36 @@
-use bracket_pathfinding::prelude::Point;
-use macroquad::{
-    prelude::{BLUE, WHITE},
-    text::draw_text,
-};
+use macroquad::prelude::WHITE;
 
-use crate::game::GameWorld;
+use crate::game::{
+    components::base::{Position, Renderable},
+    GameWorld,
+};
 
 pub fn render_map(world: &GameWorld) {
     let map = &world.map;
+    let cam = &world.camera;
     let res = &world.resources;
 
-    for y in world.camera.top_y..=world.camera.bottom_y {
-        for x in world.camera.left_x..world.camera.right_x {
-            let pt = Point::new(x, y);
-            let offset = Point::new(world.camera.left_x, world.camera.top_y);
+    for y in cam.top_y..=cam.bottom_y {
+        for x in cam.left_x..cam.right_x {
             let idx = map.map_idx(x, y);
 
-            if map.in_bounds(pt.x, pt.y) {
+            if map.in_bounds(x, y) {
                 let tint = WHITE;
                 let sprite = map.theme.tile_to_render(map.tiles[idx], idx);
-                let pos = pt - offset;
-                res.tileset().draw_tile(sprite, tint, pos.x, pos.y);
+                res.tileset()
+                    .draw_tile(sprite, tint, x - cam.left_x, y - cam.top_y);
             }
         }
     }
 }
 
-pub fn render_entities(_world: &GameWorld) {
-    println!("render entities");
-    draw_text("render the entities", 1., 40., 30., BLUE);
+pub fn render_entities(world: &GameWorld) {
+    let res = &world.resources;
+
+    for (_id, (pos, render)) in &mut world.ecs.query::<(&Position, &Renderable)>() {
+        let pos_x = pos.x - world.camera.left_x;
+        let pos_y = pos.y - world.camera.top_y;
+        res.tileset()
+            .draw_tile(render.sprite, render.color, pos_x, pos_y);
+    }
 }
