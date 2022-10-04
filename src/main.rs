@@ -7,6 +7,8 @@ mod utils;
 
 use game::GameWorld;
 use macroquad::prelude::*;
+use map::Map;
+use resources::Resources;
 
 use crate::tileset::Sprite;
 
@@ -55,6 +57,8 @@ async fn main() {
 
     rand::srand(4711 as _);
 
+    let mut game = GameWorld::new();
+
     let mut next_scene = GameState::SplashScreen;
     loop {
         match next_scene {
@@ -68,18 +72,20 @@ async fn main() {
                 next_scene = gui::loading().await;
             }
             GameState::CreateGame => {
-                let game_load = coroutines::start_coroutine(async move {
-                    let game = GameWorld::new().await;
-                    collections::storage::store(game);
-                });
+                let resources = Resources::new().await.unwrap();
+                game.ecs.insert(resources);
 
-                next_scene = gui::game_loading(game_load).await;
+                let map = Map::new().await;
+                game.ecs.insert(map);
+
+                game.tick_startup_systems().await;
+
+                next_scene = gui::game_loading().await;
             }
             GameState::InGame => {
                 clear_background(BLACK);
 
-                let game_world = &mut collections::storage::get_mut::<GameWorld>();
-                game_world.tick().await;
+                game.tick().await;
 
                 gui::base_hud().await;
                 if is_key_down(KeyCode::Escape) {

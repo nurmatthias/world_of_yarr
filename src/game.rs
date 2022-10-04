@@ -2,42 +2,64 @@ mod components;
 mod entity_spawn_system;
 mod systems;
 
-use crate::{
-    map::Map, resources::Resources, DISPLAY_HEIGHT, DISPLAY_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH,
-};
+use crate::{DISPLAY_HEIGHT, DISPLAY_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH};
 
-use self::systems::render_system;
-use hecs::World;
+use specs::prelude::*;
+
+use self::{
+    components::base::Player,
+    systems::render_system::{RenderEntities, RenderMap},
+};
 
 pub struct GameWorld {
     pub ecs: World,
-    pub camera: Camera,
-
-    pub map: Map,
-    pub resources: Resources,
+    setup_dispatcher: Dispatcher<'static, 'static>,
+    run_dispatcher: Dispatcher<'static, 'static>,
 }
 
 impl GameWorld {
-    pub async fn new() -> Self {
+    pub fn new() -> Self {
         let mut ecs = World::new();
+
+        let mut setup_dispatcher = Self::create_setup_dispatcher();
+        setup_dispatcher.setup(&mut ecs);
+
+        let mut run_dispatcher = Self::create_run_dispatcher();
+        run_dispatcher.setup(&mut ecs);
+
         let camera = Camera::new();
-        let resources = Resources::new().await.unwrap();
-
-        let map = Map::new().await;
-
-        entity_spawn_system::spawn_player(&mut ecs, map.player_start_pos);
+        ecs.insert(camera);
 
         GameWorld {
             ecs,
-            camera,
-            map,
-            resources,
+            setup_dispatcher,
+            run_dispatcher,
         }
     }
 
+    fn create_setup_dispatcher() -> Dispatcher<'static, 'static> {
+        DispatcherBuilder::new().build()
+    }
+
+    fn create_run_dispatcher() -> Dispatcher<'static, 'static> {
+        DispatcherBuilder::new()
+            .with_barrier()
+            .with(RenderMap, "RenderMap", &[])
+            .with(RenderEntities, "RenderEntities", &["RenderMap"])
+            .build()
+    }
+
+    pub async fn tick_startup_systems(self: &mut Self) {
+        self.setup_dispatcher.dispatch(&self.ecs);
+        self.ecs.maintain();
+
+        self.ecs.register::<Player>();
+        entity_spawn_system::spawn_player(&mut self.ecs);
+    }
+
     pub async fn tick(self: &mut Self) {
-        render_system::render_map(&self);
-        render_system::render_entities(&self);
+        self.run_dispatcher.dispatch(&self.ecs);
+        self.ecs.maintain();
     }
 }
 
