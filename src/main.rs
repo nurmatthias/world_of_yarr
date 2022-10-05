@@ -78,7 +78,7 @@ async fn main() {
                 let map = Map::new().await;
                 game.ecs.insert(map);
 
-                game.tick_startup_systems().await;
+                game.spawn_player();
 
                 next_scene = gui::game_loading().await;
             }

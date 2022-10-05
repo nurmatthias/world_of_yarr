@@ -1,5 +1,4 @@
 mod components;
-mod entity_spawn_system;
 mod systems;
 
 use crate::{DISPLAY_HEIGHT, DISPLAY_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH};
@@ -7,21 +6,17 @@ use crate::{DISPLAY_HEIGHT, DISPLAY_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH};
 use specs::prelude::*;
 
 use self::{
-    systems::render_system::{RenderEntities, RenderMap}, entity_spawn_system::SpawnPlayer,
+    systems::render_system::{RenderEntities, RenderMap}, systems::entity_spawn_system::SpawnEntity, components::{spawn::{EntitySpawnData, EntityType}, base::Position, SpawnComponent},
 };
 
 pub struct GameWorld {
     pub ecs: World,
-    setup_dispatcher: Dispatcher<'static, 'static>,
     run_dispatcher: Dispatcher<'static, 'static>,
 }
 
 impl GameWorld {
     pub fn new() -> Self {
         let mut ecs = World::new();
-
-        let mut setup_dispatcher = Self::create_setup_dispatcher();
-        setup_dispatcher.setup(&mut ecs);
 
         let mut run_dispatcher = Self::create_run_dispatcher();
         run_dispatcher.setup(&mut ecs);
@@ -31,33 +26,33 @@ impl GameWorld {
 
         GameWorld {
             ecs,
-            setup_dispatcher,
             run_dispatcher,
         }
     }
 
-    fn create_setup_dispatcher() -> Dispatcher<'static, 'static> {
-        DispatcherBuilder::new()
-            .with(SpawnPlayer, "SpawnPlayer", &[])
-            .build()
-    }
-
     fn create_run_dispatcher() -> Dispatcher<'static, 'static> {
         DispatcherBuilder::new()
+            .with_barrier()
+            .with(SpawnEntity, "SpawnEntity", &[])
             .with_barrier()
             .with(RenderMap, "RenderMap", &[])
             .with(RenderEntities, "RenderEntities", &["RenderMap"])
             .build()
     }
 
-    pub async fn tick_startup_systems(self: &mut Self) {
-        self.setup_dispatcher.dispatch(&self.ecs);
-        self.ecs.maintain();
-    }
-
     pub async fn tick(self: &mut Self) {
         self.run_dispatcher.dispatch(&self.ecs);
         self.ecs.maintain();
+    }
+
+
+    pub fn spawn_player(self: &mut Self) {
+
+        self.ecs.create_entity()
+            .with(EntitySpawnData{
+                entity_type: EntityType::Player,
+                components: vec![SpawnComponent::PositionComponent(Position{x:0,y:0})],
+            }).build();
     }
 }
 
