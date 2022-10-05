@@ -7,8 +7,7 @@ use crate::{DISPLAY_HEIGHT, DISPLAY_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH};
 use specs::prelude::*;
 
 use self::{
-    components::base::Player,
-    systems::render_system::{RenderEntities, RenderMap},
+    systems::render_system::{RenderEntities, RenderMap}, entity_spawn_system::SpawnPlayer,
 };
 
 pub struct GameWorld {
@@ -38,7 +37,9 @@ impl GameWorld {
     }
 
     fn create_setup_dispatcher() -> Dispatcher<'static, 'static> {
-        DispatcherBuilder::new().build()
+        DispatcherBuilder::new()
+            .with(SpawnPlayer, "SpawnPlayer", &[])
+            .build()
     }
 
     fn create_run_dispatcher() -> Dispatcher<'static, 'static> {
@@ -52,9 +53,6 @@ impl GameWorld {
     pub async fn tick_startup_systems(self: &mut Self) {
         self.setup_dispatcher.dispatch(&self.ecs);
         self.ecs.maintain();
-
-        self.ecs.register::<Player>();
-        entity_spawn_system::spawn_player(&mut self.ecs);
     }
 
     pub async fn tick(self: &mut Self) {
