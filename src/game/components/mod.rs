@@ -1,13 +1,13 @@
-use specs::Component;
-
-use self::base::{Position, Renderable};
-
 pub mod base;
-pub mod spawn;
 
 
-#[derive(Debug)]
-pub enum SpawnComponent {
-    PositionComponent(Position),
-    RenderableComponent(Renderable)
+use specs::prelude::*;
+use self::base::*;
+
+pub fn register_components(world: &mut World) {
+
+    world.register::<Player>();
+    world.register::<Position>();
+    world.register::<Renderable>();
+
 }

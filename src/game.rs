@@ -1,12 +1,13 @@
 mod components;
 mod systems;
+mod entities;
 
 use crate::{DISPLAY_HEIGHT, DISPLAY_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH};
 
 use specs::prelude::*;
 
 use self::{
-    systems::render_system::{RenderEntities, RenderMap}, systems::entity_spawn_system::SpawnEntity, components::{spawn::{EntitySpawnData, EntityType}, base::Position, SpawnComponent},
+    systems::render_system::{RenderEntities, RenderMap},
 };
 
 pub struct GameWorld {
@@ -17,6 +18,7 @@ pub struct GameWorld {
 impl GameWorld {
     pub fn new() -> Self {
         let mut ecs = World::new();
+        components::register_components(&mut ecs);
 
         let mut run_dispatcher = Self::create_run_dispatcher();
         run_dispatcher.setup(&mut ecs);
@@ -33,11 +35,13 @@ impl GameWorld {
     fn create_run_dispatcher() -> Dispatcher<'static, 'static> {
         DispatcherBuilder::new()
             .with_barrier()
-            .with(SpawnEntity, "SpawnEntity", &[])
-            .with_barrier()
             .with(RenderMap, "RenderMap", &[])
             .with(RenderEntities, "RenderEntities", &["RenderMap"])
             .build()
+    }
+
+    pub fn populate_world(self: &mut Self) {
+        entities::spawn_player(&mut self.ecs);
     }
 
     pub async fn tick(self: &mut Self) {
@@ -45,15 +49,6 @@ impl GameWorld {
         self.ecs.maintain();
     }
 
-
-    pub fn spawn_player(self: &mut Self) {
-
-        self.ecs.create_entity()
-            .with(EntitySpawnData{
-                entity_type: EntityType::Player,
-                components: vec![SpawnComponent::PositionComponent(Position{x:0,y:0})],
-            }).build();
-    }
 }
 
 pub struct Camera {
