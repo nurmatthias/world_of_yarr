@@ -9,8 +9,6 @@ use crate::GameState;
 use super::{in_progress_gui, GuiResources};
 
 pub async fn game_loading() -> GameState {
-    println!("show loading screen");
-
     clear_background(BLACK);
 
     let resources = storage::get::<GuiResources>();
@@ -18,6 +16,5 @@ pub async fn game_loading() -> GameState {
 
     next_frame().await;
 
-    println!("game has finished loading");
     return GameState::InGame;
 }

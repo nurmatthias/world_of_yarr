@@ -1,6 +1,7 @@
 mod map_builder;
 mod themes;
 
+use bracket_geometry::prelude::Point;
 use macroquad::prelude::*;
 
 use crate::{SCREEN_HEIGHT, SCREEN_WIDTH};
@@ -20,7 +21,7 @@ pub struct Map {
     pub tiles: Vec<TileType>,
     pub theme: Box<dyn MapTheme>,
 
-    pub player_start_pos: (i32, i32),
+    pub player_start_pos: Point,
 }
 
 impl Map {
@@ -73,7 +74,7 @@ impl Default for Map {
             theme: DungeonTheme::new(),
 
             tiles: vec![TileType::Floor; 80 * 50],
-            player_start_pos: (40, 25),
+            player_start_pos: Point::new(40, 25),
         }
     }
 }

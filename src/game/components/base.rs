@@ -1,3 +1,4 @@
+use bracket_geometry::prelude::Point;
 use macroquad::prelude::Color;
 use specs::prelude::*;
 use specs_derive::*;
@@ -14,7 +15,4 @@ pub struct Renderable {
 }
 
 #[derive(Component, Debug, Clone, Copy)]
-pub struct Position {
-    pub x: i32,
-    pub y: i32,
-}
+pub struct Position(pub Point);

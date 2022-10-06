@@ -2,7 +2,13 @@ use specs::prelude::*;
 use specs_derive::*;
 
 #[derive(Component, Debug, Clone, Copy)]
-pub struct WantToMove {
+pub struct RequestMove {
     pub entity: Entity,
-    pub target: (i32, i32),
+    pub request: (i32, i32),
+}
+
+#[derive(Component, Debug, Clone, Copy)]
+pub struct LocationMove {
+    pub entity: Entity,
+    pub location: (i32, i32),
 }

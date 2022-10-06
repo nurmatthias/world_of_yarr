@@ -1,6 +1,5 @@
 #![allow(dead_code)]
-
-use bracket_pathfinding::prelude::Point;
+use bracket_geometry::prelude::Point;
 use macroquad::prelude::*;
 
 use crate::{DISPLAY_HEIGHT, DISPLAY_WIDTH, SCREEN_WIDTH};
@@ -29,12 +28,12 @@ pub fn text_pos_x(x: i32) -> f32 {
     x as f32 * screen_width() / SCREEN_WIDTH as f32
 }
 
-pub fn mouse_tile_position() -> (i32, i32) {
+pub fn mouse_tile_position() -> Option<Point> {
     let pos = mouse_position();
-    (
+    Some(Point::new(
         (pos.0 / tile_width()) as i32,
         (pos.1 / tile_height()) as i32,
-    )
+    ))
 }
 
 pub fn print_centered<S>(line: i32, text: S)

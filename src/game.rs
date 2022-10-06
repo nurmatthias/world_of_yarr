@@ -1,14 +1,15 @@
 mod components;
-mod systems;
 mod entities;
+mod systems;
 
-use crate::{DISPLAY_HEIGHT, DISPLAY_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::{
+    utils::mouse_tile_position, DISPLAY_HEIGHT, DISPLAY_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH,
+};
 
+use macroquad::prelude::get_last_key_pressed;
 use specs::prelude::*;
 
-use self::{
-    systems::render_system::{RenderEntities, RenderMap},
-};
+use self::systems::render_system::{RenderEntities, RenderMap};
 
 pub struct GameWorld {
     pub ecs: World,
@@ -45,10 +46,12 @@ impl GameWorld {
     }
 
     pub async fn tick(self: &mut Self) {
+        self.ecs.insert(get_last_key_pressed());
+        self.ecs.insert(mouse_tile_position());
+
         self.run_dispatcher.dispatch(&self.ecs);
         self.ecs.maintain();
     }
-
 }
 
 pub struct Camera {

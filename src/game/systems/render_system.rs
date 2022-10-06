@@ -57,8 +57,8 @@ impl<'a> System<'a> for RenderEntities {
 
     fn run(&mut self, data: Self::SystemData) {
         for (pos, render) in (&data.positions, &data.renderings).join() {
-            let pos_x = pos.x - data.cam.left_x;
-            let pos_y = pos.y - data.cam.top_y;
+            let pos_x = pos.0.x - data.cam.left_x;
+            let pos_y = pos.0.y - data.cam.top_y;
             data.res
                 .tileset()
                 .draw_tile(render.sprite, render.color, pos_x, pos_y);
