@@ -1,13 +1,15 @@
 pub mod base;
+pub mod events;
 
 
 use specs::prelude::*;
-use self::base::*;
 
 pub fn register_components(world: &mut World) {
 
-    world.register::<Player>();
-    world.register::<Position>();
-    world.register::<Renderable>();
+    world.register::<base::Player>();
+    world.register::<base::Position>();
+    world.register::<base::Renderable>();
+
+    world.register::<events::WantToMove>();
 
 }
